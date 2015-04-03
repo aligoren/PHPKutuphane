@@ -3,12 +3,12 @@
 class OnBellek {
     
     // On bellek mekanizmasi bu klasorler URL'ler icin calismasin.
-    var $onbellekYapma = array("yonetim", "js", "resimler");
+    var $onbellekYapma = array("yonetim.php", "js", "resimler");
     
     // Genel ayarlar burada yapiliyor. Varsayilan olarak true deger doner.
     var $onbellekDurumu = true; // bellekleme islemi varsayilan olarak true yani aktif.
     var $onbellekDizini = "./bellekleme"; # bellekleme dizini. degistirilebilirlik ozelligi olabilir.
-    var $onbellekZamani = 10600; # bu kadar saniyede bir yap diyoruz. kontrol islemi var.
+    var $onbellekZamani = 60; # bu kadar saniyede bir yap diyoruz. kontrol islemi var.
     var $onbellekDosyasi;
     var $onbellekDosyasiAdi;
     var $onbellekKayit;
@@ -59,7 +59,50 @@ class OnBellek {
             }
         }
     }
-    
+    function bitir()
+    {
+        if($this->onbellekDurumu)
+        {
+            file_put_contents($this->onbellekDosyasiAdi,ob_get_contents());
+            ob_end_flush();
+            $this->onbellekKayit[$this->onbellekDosyasi] = 1;
+            if(file_put_contents($this->onbellekKayitDosyasi,serialize($this->onbellekKayit)))
+            {
+                return true;
+            }
+        }
+    }
+    function temizle($konum)
+    {
+        $konum = base64_encode($konum);
+        $this->onbellekKayit[$konum] = 0;
+        if(file_put_contents($this->onbellekKayitDosyasi, serialize($this->onbellekKayit)))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    function hepsini_temizle()
+    {
+        if(file_exists($this->onbellekKayitDosyasi))
+        {
+            foreach($this->onbellekKayit as $anahtar=>$deger)
+            {
+                $this->onbellekKayit[$anahtar] = 0;
+            }
+            if(file_put_contents($this->onbellekKayitDosyasi, serialize($this->onbellekKayit)))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
 }
 
 ?>
